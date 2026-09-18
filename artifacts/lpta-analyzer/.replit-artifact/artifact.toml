@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "LPTA — LLVM Pass Transformation Analyzer"
+description = "A compiler engineering workbench that traces deterministic LLVM IR transformations pass by pass, with measured diffs, impact scoring, explanations, transformation history, and generated code metrics."
+version = "1.0.0"
+id = "artifacts/lpta-analyzer"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18374
+
+[services.development]
+run = "pnpm --filter @workspace/lpta-analyzer run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/lpta-analyzer", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/lpta-analyzer/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18374"
+BASE_PATH = "/"

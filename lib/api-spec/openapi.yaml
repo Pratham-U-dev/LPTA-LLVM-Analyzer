@@ -1,0 +1,255 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: analysis
+    description: LLVM transformation analysis
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /analyze:
+    post:
+      operationId: analyzeProgram
+      tags: [analysis]
+      summary: Analyze a program through an LLVM pass pipeline
+      description: Returns a deterministic demo analysis until a reliable live LLVM pass tracer is available.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalyzeInput"
+      responses:
+        "200":
+          description: Transformation analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisResult"
+        "400":
+          description: Invalid analysis input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+    AnalyzeInput:
+      type: object
+      properties:
+        language:
+          type: string
+          enum: [c, cpp]
+        source:
+          type: string
+          minLength: 1
+        pipeline:
+          type: string
+          enum: [standard]
+        sample_id:
+          type: string
+          nullable: true
+      required:
+        - language
+        - source
+        - pipeline
+    StageMetrics:
+      type: object
+      properties:
+        instructions_before: { type: integer }
+        instructions_after: { type: integer }
+        basic_blocks_before: { type: integer }
+        basic_blocks_after: { type: integer }
+        lines_before: { type: integer }
+        lines_after: { type: integer }
+        bytes_before: { type: integer }
+        bytes_after: { type: integer }
+        functions_before: { type: integer }
+        functions_after: { type: integer }
+        globals_before: { type: integer }
+        globals_after: { type: integer }
+        lines_added: { type: integer }
+        lines_removed: { type: integer }
+        instruction_delta: { type: integer }
+        basic_block_delta: { type: integer }
+        line_delta: { type: integer }
+        byte_delta: { type: integer }
+        reduction_percent: { type: number }
+      required:
+        - instructions_before
+        - instructions_after
+        - basic_blocks_before
+        - basic_blocks_after
+        - lines_before
+        - lines_after
+        - bytes_before
+        - bytes_after
+        - functions_before
+        - functions_after
+        - globals_before
+        - globals_after
+        - lines_added
+        - lines_removed
+        - instruction_delta
+        - basic_block_delta
+        - line_delta
+        - byte_delta
+        - reduction_percent
+    Impact:
+      type: object
+      properties:
+        score: { type: integer }
+        label:
+          type: string
+          enum: [NONE, LOW, MEDIUM, HIGH]
+      required: [score, label]
+    Stage:
+      type: object
+      properties:
+        pass_name: { type: string }
+        changed: { type: boolean }
+        before_ir: { type: string }
+        after_ir: { type: string }
+        metrics:
+          $ref: "#/components/schemas/StageMetrics"
+        impact:
+          $ref: "#/components/schemas/Impact"
+        general_purpose: { type: string }
+        observed_change:
+          type: array
+          items: { type: string }
+        explanation: { type: string }
+      required:
+        - pass_name
+        - changed
+        - before_ir
+        - after_ir
+        - metrics
+        - impact
+        - general_purpose
+        - observed_change
+        - explanation
+    Summary:
+      type: object
+      properties:
+        total_passes: { type: integer }
+        changed_passes: { type: integer }
+        major_transformations: { type: integer }
+        instructions_before: { type: integer }
+        instructions_after: { type: integer }
+        basic_blocks_before: { type: integer }
+        basic_blocks_after: { type: integer }
+        lines_before: { type: integer }
+        lines_after: { type: integer }
+        bytes_before: { type: integer }
+        bytes_after: { type: integer }
+        ir_reduction_percent: { type: number }
+        instruction_series:
+          type: array
+          items:
+            $ref: "#/components/schemas/SeriesPoint"
+      required:
+        - total_passes
+        - changed_passes
+        - major_transformations
+        - instructions_before
+        - instructions_after
+        - basic_blocks_before
+        - basic_blocks_after
+        - lines_before
+        - lines_after
+        - bytes_before
+        - bytes_after
+        - ir_reduction_percent
+        - instruction_series
+    SeriesPoint:
+      type: object
+      properties:
+        label: { type: string }
+        value: { type: integer }
+      required: [label, value]
+    CodegenMetrics:
+      type: object
+      properties:
+        available: { type: boolean }
+        label: { type: string }
+        baseline_instructions: { type: integer }
+        optimized_instructions: { type: integer }
+        delta: { type: integer }
+        baseline_assembly: { type: string }
+        optimized_assembly: { type: string }
+        note: { type: string }
+      required:
+        - available
+        - label
+        - baseline_instructions
+        - optimized_instructions
+        - delta
+        - baseline_assembly
+        - optimized_assembly
+        - note
+    AnalysisResult:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [demo, live]
+        llvm_version:
+          type: string
+          nullable: true
+        pipeline:
+          type: array
+          items: { type: string }
+        source_ir: { type: string }
+        final_ir: { type: string }
+        stages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Stage"
+        summary:
+          $ref: "#/components/schemas/Summary"
+        codegen:
+          $ref: "#/components/schemas/CodegenMetrics"
+      required:
+        - mode
+        - llvm_version
+        - pipeline
+        - source_ir
+        - final_ir
+        - stages
+        - summary
+        - codegen
+
