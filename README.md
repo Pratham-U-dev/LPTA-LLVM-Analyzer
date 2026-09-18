@@ -35,3 +35,9 @@ The normal demo flow is:
 
 The response is typed from `lib/api-spec/openapi.yaml` and includes
 `mode: "demo"` so consumers can distinguish it from future live LLVM support.
+
+## output
+<img width="1920" height="1080" alt="Screenshot (249)" src="https://github.com/user-attachments/assets/968140f6-5fee-45d8-b784-7bb026a0d1fc" />
+
+<img width="1920" height="1080" alt="Screenshot (250)" src="https://github.com/user-attachments/assets/3711848d-f4cf-4e54-a65e-2abd4a5f1367" />
+
