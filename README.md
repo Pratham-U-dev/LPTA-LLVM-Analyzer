@@ -5,12 +5,6 @@ IR, one pass at a time. It shows measured IR snapshots, derived diffs,
 instruction/basic-block/line/byte metrics, a transparent impact heuristic,
 deterministic explanations, transformation history, and generated code metrics.
 
-## Demo honesty
-
-This environment does not provide a reliable pass-by-pass LLVM tracer, so the
-app runs in **DEMO MODE**. The backend uses realistic, deterministic LLVM IR
-snapshots and computes metrics from those snapshots. It does not claim live
-LLVM execution, runtime performance, or benchmark results.
 
 ## Run
 
